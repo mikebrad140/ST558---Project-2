@@ -1,0 +1,87 @@
+---
+title: 'ST558: Project 2'
+author: "Michael Bradshaw and Yejun Han"
+date: "`r Sys.Date()`"
+output:
+  github_document:
+    toc: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(warning=FALSE)
+knitr::opts_chunk$set(message=FALSE)
+
+library(tidyverse)
+library(tree)
+library(caret)
+library(randomForest)
+library(gbm)
+```
+
+## Introduction to the Project (To be Completed by Yejun)
+
+## Import the Data
+
+```{r ImportData, eval=TRUE}
+#Import the newsData csv file:
+newsData <- read.csv(file="..//OnlineNewsPopularity//OnlineNewsPopularity.csv")
+
+# Create single variable for data channel: 
+newsData <- newsData %>% 
+  mutate(channel = ifelse(data_channel_is_lifestyle == 1, "Lifestyle",
+                   ifelse(data_channel_is_entertainment == 1, "Entertainment",
+                   ifelse(data_channel_is_bus == 1, "Business",
+                   ifelse(data_channel_is_socmed == 1, "SocialMedia",
+                   ifelse(data_channel_is_tech == 1, "Tech",
+                   ifelse(data_channel_is_world == 1, "World", "Other")))))))
+newsData$channel <- as.factor(newsData$channel) #Converting to factor
+
+# Subset the data for each data channel
+lifestyleData <- filter(newsData, channel == "Lifestyle")
+entertainmentData <- filter(newsData, channel == "Entertainment")
+businessData <- filter(newsData, channel == "Business")
+socmedData <- filter(newsData, channel == "SocialMedia")
+techData <- filter(newsData, channel == "Tech")
+worldData <- filter(newsData, channel == "World")
+otherData <- filter(newsData, channel == "Other")
+```
+
+## Split the data (Just setting an example up - not final)
+
+```{r SplitData, eval=TRUE}
+# Set the seed for reproducibility
+set.seed(717)
+
+# Create the training and test indices
+trainIndices <- createDataPartition(lifestyleData$shares, p = 0.7, list = FALSE)
+
+# Split the data into training and test sets
+lifestyle_train_Data <- lifestyleData[trainIndices, ]
+lifestyle_test_Data <- lifestyleData[-trainIndices, ]
+```
+
+## Summarizations (Both Michael and Yejun) - example shown
+```{r Summarizations, eval=TRUE}
+summary(lifestyle_train_Data$shares)
+# Histogram of shares
+ggplot(lifestyle_train_Data , aes(x = shares)) +
+  geom_histogram(binwidth = 2500, fill = "blue") +
+  labs(x = "Shares", y = "Frequency") +
+  ggtitle("Distribution of Shares") +
+  theme_classic()
+
+```
+
+**Each group member is responsible for producing some summary statistics (means, sds, contingencytables, etc.) and for producing at least three graphs (each) of the data.**
+
+## Modeling (Both Michael and Yejun)
+ 
+Each group member should contribute a linear regression model and an ensemble tree-based model.
+
+### Linear Regression Models
+
+### Ensemble Tree-Based Models
+
+### Comparison of Models
