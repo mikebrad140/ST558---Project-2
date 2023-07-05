@@ -1,7 +1,7 @@
 ST558: Project 2
 ================
 Michael Bradshaw and Yejun Han
-2023-07-04
+2023-07-05
 
 - <a href="#channel-of-interest-entertainment"
   id="toc-channel-of-interest-entertainment">Channel of Interest:
@@ -10,9 +10,9 @@ Michael Bradshaw and Yejun Han
     id="toc-introduction-to-the-project-to-be-completed-by-yejun">Introduction
     to the Project (To be Completed by Yejun)</a>
   - <a href="#import-the-data" id="toc-import-the-data">Import the Data</a>
-  - <a href="#split-the-data-just-setting-an-example-up---not-final"
-    id="toc-split-the-data-just-setting-an-example-up---not-final">Split the
-    data (Just setting an example up - not final)</a>
+  - <a href="#splitting-the-data-into-test-and-training-datasets"
+    id="toc-splitting-the-data-into-test-and-training-datasets">Splitting
+    the data into test and training datasets</a>
   - <a href="#summarizations-both-michael-and-yejun"
     id="toc-summarizations-both-michael-and-yejun">Summarizations (Both
     Michael and Yejun)</a>
@@ -46,7 +46,7 @@ newsData <- read.csv(file="..//OnlineNewsPopularity//OnlineNewsPopularity.csv")
 
 # Create single variable for data channel: 
 newsData <- newsData %>% 
-  select(-url, -timedelta) %>%
+  dplyr::select(-url, -timedelta) %>%
   mutate(channel = ifelse(data_channel_is_lifestyle == 1, "Lifestyle",
                    ifelse(data_channel_is_entertainment == 1, "Entertainment",
                    ifelse(data_channel_is_bus == 1, "Business",
@@ -69,13 +69,13 @@ newsData$day_of_week <- factor(newsData$day_of_week,
                                           "Wednesday", "Thursday", 
                                           "Friday", "Saturday"))
 newsData$content_length <- as.factor(newsData$content_length)
-# Subset the data for the data channel of interest:
+# Subset the data for each data channel
 newsData_channel <- newsData %>% filter(channel == params$channel)
 ```
 
-## Split the data (Just setting an example up - not final)
+## Splitting the data into test and training datasets
 
-This section creates training and test indices based on the “shares”
+This section creates training and test indices based on the *shares*
 variable, and splits the data frames for each channel into separate
 training and test sets for modeling.
 
@@ -216,13 +216,12 @@ average_shares_byContent
 ```
 
     ## # A tibble: 4 × 7
-    ##   content_length     n average_shares sd_shares min_shares max_shares
-    ##   <fct>          <int>          <dbl>     <dbl>      <int>      <int>
-    ## 1 Long            1384          2875.     6498.        138      96000
-    ## 2 Medium          1212          2754.     7477.         51     138700
-    ## 3 Short           1161          2590.     5207.         47      98000
-    ## 4 Very Short      1184          3356.     9191.         49     193400
-    ## # ℹ 1 more variable: range_shares <int>
+    ##   content_length     n average_shares sd_shares min_shares max_shares range_shares
+    ##   <fct>          <int>          <dbl>     <dbl>      <int>      <int>        <int>
+    ## 1 Long            1384          2875.     6498.        138      96000        95862
+    ## 2 Medium          1212          2754.     7477.         51     138700       138649
+    ## 3 Short           1161          2590.     5207.         47      98000        97953
+    ## 4 Very Short      1184          3356.     9191.         49     193400       193351
 
 ``` r
 # Create the horizontal bar chart
@@ -245,43 +244,258 @@ ensemble tree-based model.
 
 ### Linear Regression Models
 
-Linear regression is a modeling technique that forms a linear
-relationship between a dependent variable (i.e. shares) and one or more
-independent variables. In simple linear regression, there is one
-predictor or independent variable as opposed to multiple linear
-regression where there are multiple predictors. Linear regression seeks
-to explain the values of our response variable based on our predictor
-variables by fitting a straight line to the data that minimizes the sum
-of the squared differences between the observed and predicted values.
+Linear regression is a modeling technique that attempts to form a linear
+relationship between a response (dependent variable (i.e. shares)) and
+one or more predictor (independent variables). In simple linear
+regression, there is one predictor or independent variable as opposed to
+multiple linear regression where there are multiple predictors. Linear
+regression seeks to explain the values of our response variable based on
+our predictor variables by fitting a straight line to the data that
+minimizes the sum of the squared differences between the observed and
+predicted values.
+
+Our online news dataset contains a large number of predictors and we
+don’t have a great sense of their relationship to the shares variable.
+These relationships may change between data channels as well. If we look
+at correlations between shares and the rest of the possible numeric
+variables, we see a mix of small positive relationship, small negative
+relationships, and some with little to no relationship.
 
 ``` r
-# all predictors
-lm_fit1 <- train(shares ~ . , data = train_Data, 
+# Calculate correlations between shares and all numeric variables
+correlations <- cor(train_Data[, sapply(train_Data, is.numeric)], 
+                    train_Data$shares)
+correlations
+```
+
+    ##                                        [,1]
+    ## n_tokens_title                 0.0082025078
+    ## n_tokens_content              -0.0099358129
+    ## n_unique_tokens                0.0060525446
+    ## n_non_stop_words               0.0058585890
+    ## n_non_stop_unique_tokens       0.0057499767
+    ## num_hrefs                      0.0463818864
+    ## num_self_hrefs                -0.0040597561
+    ## num_imgs                       0.0452642152
+    ## num_videos                     0.0005214405
+    ## average_token_length           0.0103222753
+    ## num_keywords                   0.0455185020
+    ## data_channel_is_lifestyle                NA
+    ## data_channel_is_entertainment            NA
+    ## data_channel_is_bus                      NA
+    ## data_channel_is_socmed                   NA
+    ## data_channel_is_tech                     NA
+    ## data_channel_is_world                    NA
+    ## kw_min_min                     0.0002161344
+    ## kw_max_min                     0.0067707745
+    ## kw_avg_min                     0.0035846768
+    ## kw_min_max                    -0.0027346618
+    ## kw_max_max                     0.0129599116
+    ## kw_avg_max                     0.0423079591
+    ## kw_min_avg                     0.0241892312
+    ## kw_max_avg                     0.0838594227
+    ## kw_avg_avg                     0.1245978606
+    ## self_reference_min_shares      0.1159582698
+    ## self_reference_max_shares      0.0786395307
+    ## self_reference_avg_sharess     0.1330038136
+    ## weekday_is_monday             -0.0119032551
+    ## weekday_is_tuesday            -0.0114185035
+    ## weekday_is_wednesday           0.0011001656
+    ## weekday_is_thursday           -0.0161416172
+    ## weekday_is_friday             -0.0065650606
+    ## weekday_is_saturday            0.0300904887
+    ## weekday_is_sunday              0.0392585302
+    ## is_weekend                     0.0510916208
+    ## LDA_00                        -0.0289428353
+    ## LDA_01                        -0.0201822507
+    ## LDA_02                        -0.0262798352
+    ## LDA_03                         0.0382017534
+    ## LDA_04                        -0.0041387574
+    ## global_subjectivity            0.0300187894
+    ## global_sentiment_polarity      0.0155998871
+    ## global_rate_positive_words    -0.0334521379
+    ## global_rate_negative_words    -0.0131454062
+    ## rate_positive_words           -0.0060175894
+    ## rate_negative_words            0.0008146931
+    ## avg_positive_polarity          0.0185136826
+    ## min_positive_polarity          0.0239526322
+    ## max_positive_polarity          0.0027406734
+    ## avg_negative_polarity         -0.0012964950
+    ## min_negative_polarity          0.0080679634
+    ## max_negative_polarity          0.0012686628
+    ## title_subjectivity             0.0125873128
+    ## title_sentiment_polarity      -0.0039697509
+    ## abs_title_subjectivity         0.0039264613
+    ## abs_title_sentiment_polarity   0.0156540906
+    ## shares                         1.0000000000
+
+In general, we see that the number of videos (num_videos), the number of
+images (num_imgs) and the number of links (num_hrefs) have small
+positive correlations. We also know from our descriptive analysis that
+day of the week seems to influence the number of shares as well, but to
+eliminate redundancy lets remove the weekday_is variables and the
+is_weekend variables. Other variables that we might expect to influence
+number of shares include the number of words in the title
+(n_tokens_title), and the number of words in the content
+(n_tokens_content). The LDA topic also appears correlated across
+different data channels, so let’s include all of these variables since
+they probably vary across different data channels. Lastly, in the
+overall news dataset we notice that average keyword (kw_avg_avg) had a
+positive correlation with shares, so let’s keep this in our model.
+
+We can also remove all the data_channel variables as this information is
+not needed within each data channel analysis.
+
+``` r
+# subset the data: 
+train_Data_model <- dplyr::select(train_Data, shares, num_videos, n_tokens_content, n_tokens_title, num_imgs, num_hrefs, self_reference_min_shares, LDA_00, LDA_01, LDA_02, LDA_03, LDA_04, kw_avg_avg,day_of_week)
+
+# all predictors from our subset:
+lm_fit1 <- train(shares ~ . , data = train_Data_model, 
                             method = "lm", preProcess = c("center", "scale"),
                             trControl = trainControl(method = "cv", number = 5))
 ```
 
-### Ensemble Tree-Based
+Here, we assess how well our first linear model fits the data based on
+the ability to accurately predict the shares variable. The RMSE provides
+an evaluation of the model’s performance.
+
+``` r
+# check the fit of our first linear model:
+predslinear1 <- predict(lm_fit1, newdata = test_Data)
+# See how well the model fits
+postResample(predslinear1, obs = test_Data$shares)
+```
+
+    ##         RMSE     Rsquared          MAE 
+    ## 9.036236e+03 2.897444e-02 3.001302e+03
+
+Now, let’s suppose we were way off with all of our assumptions in terms
+of the key variables to include. Let’s try a different appraoch and use
+the leapSeq algorithm. This approach evaluates different subsets of
+features to determine the subset that produces the best model
+performance. And in this situation, we can do this with all of the
+possible predictor variables, not just our subset of key variables. This
+may require more computational power, so let’s do parallel processing.
+
+``` r
+# Parallel Processing
+cores <- 10
+cl <- makeCluster(cores)
+registerDoParallel(cl)
+
+step_model_seq <- train(shares ~ . , data = train_Data, 
+                 method = "leapSeq", preProcess = c("center", "scale"),
+                 tuneGrid = data.frame(nvmax = 1:10), # up to 10 predictors max
+                 trControl = trainControl(method = "cv", number = 5))
+```
+
+    ## Reordering variables and trying again:
+
+``` r
+step_model_seq$results
+```
+
+    ##    nvmax      RMSE     Rsquared      MAE   RMSESD   RsquaredSD    MAESD
+    ## 1      1  7141.255 0.0025287789 2827.201 1262.147 0.0040624004 138.2063
+    ## 2      2  7140.730 0.0005161616 2827.200 1259.047 0.0007212553 133.9755
+    ## 3      3  7108.320 0.0100172942 2788.401 1250.657 0.0068332876 102.0010
+    ## 4      4  7112.025 0.0093139312 2781.214 1248.482 0.0063684318 104.4817
+    ## 5      5  7117.245 0.0089572746 2784.587 1245.544 0.0065982052 104.8238
+    ## 6      6  7112.530 0.0114470293 2775.589 1249.612 0.0121350538 113.4971
+    ## 7      7  7130.064 0.0057569802 2787.951 1233.106 0.0043865809 100.6897
+    ## 8      8  7114.269 0.0108309263 2771.841 1251.667 0.0105092904 115.3636
+    ## 9      9  7095.384 0.0141308428 2767.335 1240.112 0.0082511681 110.9646
+    ## 10    10 10256.134 0.0114642310 2929.354 8119.699 0.0094858087 462.8345
+
+``` r
+step_model_seq$bestTune
+```
+
+    ##   nvmax
+    ## 9     9
+
+``` r
+# Stop parallel processing
+stopCluster(cl)
+registerDoSEQ()
+```
+
+Here, we assess how well our second linear model fits the data based on
+the ability to accurately predict the shares variable. The RMSE provides
+an evaluation of the model’s performance.
+
+``` r
+predslinear2 <- predict(step_model_seq, newdata = test_Data)
+# See how well the model fits
+postResample(predslinear2, obs = test_Data$shares)
+```
+
+    ##         RMSE     Rsquared          MAE 
+    ## 8.961344e+03 7.001026e-02 2.987983e+03
+
+### Ensemble Tree-Based Models
 
 ### Random Forest Model:
 
-Random Forest is an ensemble learning technique. It constructs an
-ensemble of decision trees by training each tree on a random subset of
-the data and a random subset of the predictors. The individual trees
-independently make predictions, and the final prediction is determined
-by aggregating the results. This approach enhances model performance by
-reducing overfitting and improving generalization. Random Forest is
-applicable to both classification and regression problems and is known
-for its ability to handle large datasets, high-dimensional feature
-spaces, and capture complex relationships between variables.
+Random Forest is an ensemble learning technique that uses decision tress
+to make predictions. The idea is to construct an ensemble of decision
+trees by training each tree on a random subset of the data and a random
+subset of the predictors. Each individual tree independently make
+predictions, but the final prediction is determined by aggregating the
+results.
 
 ``` r
-rfFit <- train(shares ~ ., data = train_Data, method = "rf",
-               trControl = trainControl(method = "cv", 
-                                        number = 5, repeats = 3),
+# Parallel Processing
+cores <- 10
+cl <- makeCluster(cores)
+registerDoParallel(cl)
+
+rfFit <- train(shares ~ ., data = train_Data_model, method = "rf",
+               trControl = trainControl(method = "cv", number = 5, repeats = 3),
                preProcess = c("center", "scale"),
-               tuneGrid = data.frame(mtry =
-                                    c(1:ncol(train_Data_model)/3)))
+               tuneGrid = data.frame(mtry = c(1:10)))
+
+# Stop parallel processing
+stopCluster(cl)
+registerDoSEQ()
+
+#review results:
+rfFit$results
 ```
 
-### Comparison of Models
+    ##    mtry     RMSE   Rsquared      MAE   RMSESD  RsquaredSD    MAESD
+    ## 1     1 6889.201 0.03605135 2743.894 2020.938 0.012458608 279.7617
+    ## 2     2 6894.172 0.03623901 2788.199 1952.721 0.010082692 268.8043
+    ## 3     3 6918.428 0.03584069 2814.169 1912.021 0.008604337 267.8573
+    ## 4     4 6966.234 0.03189461 2843.613 1867.874 0.009551549 260.2277
+    ## 5     5 6987.077 0.03137227 2865.997 1843.509 0.009454043 257.9574
+    ## 6     6 7016.407 0.02940863 2890.895 1853.481 0.007116829 274.8287
+    ## 7     7 7042.351 0.02759359 2901.652 1840.920 0.007937199 271.7191
+    ## 8     8 7069.559 0.02723153 2919.786 1813.775 0.006469195 264.9758
+    ## 9     9 7105.573 0.02457779 2942.551 1798.324 0.007594640 269.5126
+    ## 10   10 7131.302 0.02336842 2954.599 1809.048 0.006379454 279.5842
+
+``` r
+rfFit$bestTune
+```
+
+    ##   mtry
+    ## 1    1
+
+Finally, we make predictions on test data using the trained Random
+Forest model. The model fit diagnostics compares the predicted values
+with the observed shares values from the test data. The RMSE provides an
+evaluation of the model’s performance.
+
+``` r
+# Make predictions with random forest model
+predsRf <- predict(rfFit, newdata = test_Data)
+# Check model fit diagnostics
+postResample(predsRf, obs = test_Data$shares)
+```
+
+    ##         RMSE     Rsquared          MAE 
+    ## 9.106214e+03 1.429962e-02 3.031559e+03
+
+### Comparison of Models (Yejun)
