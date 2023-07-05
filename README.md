@@ -22,6 +22,7 @@ The following packages to complete this analysis:
 -   [Business article is available here](Business.html)
 -   [Social Media article is available here](SocialMedia.html)
 -   [Tech article is available here](Tech.html)
+-   [World article is available here](World.html)
 
 ### Code used to create the analyses of each data channel:
 To automate the creation of our markdown documents for each data channel, we first created a data frame that had a vector of channel file names in the first column, and a list of parameters in the second column. 
