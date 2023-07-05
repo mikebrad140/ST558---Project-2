@@ -3,9 +3,13 @@ title: 'ST558: Project 2'
 author: "Michael Bradshaw and Yejun Han"
 date: "`r Sys.Date()`"
 output:
-  github_document:
-    toc: true
-    number_sections: true
+  rmarkdown::html_document
+params:
+  channel:
+    label: "Data Channel"
+    value: Lifestyle #default value
+    input: select # select dropdown
+    choices: [Lifestyle, Entertainment, Business, Social Media, Tech, World]
 ---
 
 ```{r setup, include=FALSE}
@@ -18,11 +22,19 @@ library(tree)
 library(caret)
 library(randomForest)
 library(gbm)
+library(GGally)
+library(leaps)
 ```
+
+# Channel of Interest: `r params$channel`
 
 ## Introduction to the Project (To be Completed by Yejun)
 
+
 ## Import the Data
+In this section, we first import the raw online news popularity dataset. We remove the non-predictor variables named url and timedelta. Next, we create three new variables: the first is called *channel* based on the values of the *data_channel_is_* variables. The second new variable is called *day_of_week* based on the values of the *weekday_is_* variables. The third new variable is called *content_length* based on the values of the *n_tokens_content* variable. The *content_length *variable is assigned values based on the conditionals provided, categorizing the length of the content as "Very Short," "Short," "Medium," or "Long."
+
+Lastly, we subset the imported newsData into separate data frames for each specific channel.
 
 ```{r ImportData, eval=TRUE}
 #Import the newsData csv file:
@@ -30,51 +42,126 @@ newsData <- read.csv(file="..//OnlineNewsPopularity//OnlineNewsPopularity.csv")
 
 # Create single variable for data channel: 
 newsData <- newsData %>% 
+  select(-url, -timedelta) %>%
   mutate(channel = ifelse(data_channel_is_lifestyle == 1, "Lifestyle",
                    ifelse(data_channel_is_entertainment == 1, "Entertainment",
                    ifelse(data_channel_is_bus == 1, "Business",
                    ifelse(data_channel_is_socmed == 1, "SocialMedia",
                    ifelse(data_channel_is_tech == 1, "Tech",
-                   ifelse(data_channel_is_world == 1, "World", "Other")))))))
+                   ifelse(data_channel_is_world == 1, "World", "Other")))))),
+         day_of_week = ifelse(weekday_is_monday == 1, "Monday",
+                       ifelse(weekday_is_tuesday == 1, "Tuesday",
+                       ifelse(weekday_is_wednesday == 1, "Wednesday",
+                       ifelse(weekday_is_thursday == 1, "Thursday",
+                       ifelse(weekday_is_friday == 1, "Friday",
+                       ifelse(weekday_is_saturday == 1, "Saturday", "Sunday")))))),
+         content_length = ifelse(n_tokens_content <= 250, "Very Short",
+                        ifelse(n_tokens_content <= 410, "Short",      
+                        ifelse(n_tokens_content <= 750, "Medium", "Long")))
+         )
 newsData$channel <- as.factor(newsData$channel) #Converting to factor
-
+newsData$day_of_week <- factor(newsData$day_of_week,
+                               levels = c("Sunday", "Monday", "Tuesday", 
+                                          "Wednesday", "Thursday", 
+                                          "Friday", "Saturday"))
+newsData$content_length <- as.factor(newsData$content_length)
 # Subset the data for each data channel
-lifestyleData <- filter(newsData, channel == "Lifestyle")
-entertainmentData <- filter(newsData, channel == "Entertainment")
-businessData <- filter(newsData, channel == "Business")
-socmedData <- filter(newsData, channel == "SocialMedia")
-techData <- filter(newsData, channel == "Tech")
-worldData <- filter(newsData, channel == "World")
-otherData <- filter(newsData, channel == "Other")
+newsData_channel <- newsData %>% filter(channel == params$channel)
 ```
 
-## Split the data (Just setting an example up - not final)
+## Split the data 
+
+This section creates training and test indices based on the *shares* variable, and splits the data frames for each channel into separate training and test sets for modeling.
 
 ```{r SplitData, eval=TRUE}
 # Set the seed for reproducibility
 set.seed(717)
 
 # Create the training and test indices
-trainIndices <- createDataPartition(lifestyleData$shares, p = 0.7, list = FALSE)
+trainIndices <- createDataPartition(newsData_channel$shares, p = 0.7, list = FALSE)
 
 # Split the data into training and test sets
-lifestyle_train_Data <- lifestyleData[trainIndices, ]
-lifestyle_test_Data <- lifestyleData[-trainIndices, ]
+train_Data <- newsData_channel[trainIndices, ]
+test_Data <- newsData_channel[-trainIndices, ]
 ```
 
-## Summarizations (Both Michael and Yejun) - example shown
-```{r Summarizations, eval=TRUE}
-summary(lifestyle_train_Data$shares)
+## Summarizations (Both Michael and Yejun)
+
+In this first example, we look at a table summarizing the statistics of the shares variable in our training dataset. We then create a histogram to visualize the distribution of shares. 
+
+In a normal distribution,the histogram will have a symmetric shape with a peak at the center and tails that extend symmetrically in both directions. In a skewed distribution, the data can be either skewed to the right or skewed to the left. In a right skewed distribution, the histogram will have a long tail on the right side and a shorter tail on the left side. The majority of observations will be concentrated on the left side. In a left skewed distribution, the histogram will have a long tail on the left side and a shorter tail on the right side, with the majority of observations concentrated on the right side.  
+
+```{r Summarization1, eval=TRUE}
+summary(train_Data$shares)
 # Histogram of shares
-ggplot(lifestyle_train_Data , aes(x = shares)) +
+ggplot(train_Data , aes(x = shares)) +
   geom_histogram(binwidth = 2500, fill = "blue") +
   labs(x = "Shares", y = "Frequency") +
   ggtitle("Distribution of Shares") +
   theme_classic()
-
 ```
 
-**Each group member is responsible for producing some summary statistics (means, sds, contingencytables, etc.) and for producing at least three graphs (each) of the data.**
+In this second table, we display summary statistics for the shares variable within our training dataset by day of the week. We display the count (n), the total sum of shares (total_shares), the average shares (average_shares), the standard deviation of shares (sd_shares), the minimum shares (min_shares), and the maximum shares (max_shares) for each group.
+
+Next, we examine the is_weekend categorical variable by the shares variable. We calculate the mean shares for each group (weekend vs. non-weekend days).
+
+Lastly, we create a bar plot to visualize the average shares by day of the week. Higher bars indicate more shares on that day of the week.
+
+```{r Summarization2, eval=TRUE}
+#Shares by day of the week
+average_shares <- train_Data %>%
+  group_by(day_of_week) %>%
+  summarise(n = n(),
+            total_shares = sum(shares),
+            average_shares = mean(shares),
+            sd_shares = sd(shares),
+            min_shares = min(shares),
+            max_shares = max(shares))
+average_shares
+
+weekend_mean_shares <- train_Data %>%
+  group_by(is_weekend) %>%
+  rename(Weekend = is_weekend) %>%
+  mutate(Weekend = ifelse(Weekend == 0, "No", "Yes")) %>%
+  summarize(mean_shares = mean(shares))
+  
+weekend_mean_shares
+
+ggplot(average_shares, aes(x = day_of_week, y = average_shares, 
+                           fill = day_of_week)) +
+  geom_col() +
+  labs(x = "Day of the Week", y = "Average Shares", fill = "Day of the Week") +
+  ggtitle("Average Shares by Day of the Week") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+These tables display the average number of shares for different content length categories. Summary statistics such as the count of observations, the average number of shares, the standard deviation of shares, the minimum number of shares (min_shares), and the maximum number of shares (max_shares), and the range of shares (range_shares) are computed for each content length category.
+
+Next, a horizontal bar chart is created to help us visualize these results by showing the average number of shares on the x-axis and the content length categories (content_length) on the y-axis. 
+
+```{r Summarization3, eval=TRUE}
+# Calculate the average shares by content length category
+average_shares_byContent <- train_Data %>%
+  group_by(content_length) %>%
+  summarise(n = n(),
+            average_shares = mean(shares),
+            sd_shares = sd(shares),
+            min_shares = min(shares),
+            max_shares = max(shares),
+            range_shares = max_shares - min_shares)
+average_shares_byContent
+
+# Create the horizontal bar chart
+ggplot(average_shares_byContent, aes(x = average_shares, y = content_length, fill = content_length)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Average Shares", y = "Content Length Category", fill = "Content Length") +
+  ggtitle("Average Shares by Content Length Category") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(hjust = 0.5))
+```
+
+**Yejun to add more.**
 
 ## Modeling (Both Michael and Yejun)
  
@@ -82,6 +169,28 @@ Each group member should contribute a linear regression model and an ensemble tr
 
 ### Linear Regression Models
 
+Linear regression is a modeling technique that forms a linear relationship between a dependent variable (i.e. shares) and one or more independent variables. In simple linear regression, there is one predictor or independent variable as opposed to multiple linear regression where there are multiple predictors. Linear regression seeks to explain the values of our response variable based on our predictor variables by fitting a straight line to the data that minimizes the sum of the squared differences between the observed and predicted values.
+
+```{r LinearModel1, eval=TRUE}
+# all predictors
+lm_fit1 <- train(shares ~ . , data = train_Data, 
+                            method = "lm", preProcess = c("center", "scale"),
+                            trControl = trainControl(method = "cv", number = 5))
+```
+
 ### Ensemble Tree-Based Models
 
-### Comparison of Models
+### Random Forest Model: 
+Random Forest is an ensemble learning technique. It constructs an ensemble of decision trees by training each tree on a random subset of the data and a random subset of the predictors. The individual trees independently make predictions, and the final prediction is determined by aggregating the results. 
+
+```{r RandomForest, eval=FALSE}
+rfFit <- train(shares ~ ., data = train_Data, method = "rf",
+               trControl = trainControl(method = "cv", 
+                                        number = 5, repeats = 3),
+               preProcess = c("center", "scale"),
+               tuneGrid = data.frame(mtry =
+                                    c(1:ncol(train_Data_model)/3)))
+```
+
+### Comparison of Models (To be completed by Yejun)
+
