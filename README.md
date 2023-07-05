@@ -5,14 +5,16 @@ Authors: Michael Bradshaw and Yejun Han.
 Date: July 9, 2023
 
 ### Brief description of the purpose of this repository:
+This repository conducts data summarization and analysis on the [online news popularity data set](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity). This online news data is subset based on data channel and an analytic report is created for each data channel. We split the data into training and test dataset with the goal to predict the number of shares using predictive modeling techniques, including linear regression and ensemble based tree methods. The best modeling approach is determined by having the lowest root mean square error (RMSE).
 
 ### List of R packages used:
 The following packages to complete this analysis:
 
 -   Tidyverse: for data manipulation (dplyr), and vizualization (ggplot2). 
 -   Caret: to split data, train and compare models, perform data preprocessing, and tune hyperparameters.
--   Rmarkdown: to render code to console
-
+-   Rmarkdown: to render code to console and add enhancements to R Markdown
+-   ggplot2: graphs and visualizations
+-   
 ### Links to the generated analyses:  
 
 -   [Lifestyle article is available here](Lifestyle.html)
