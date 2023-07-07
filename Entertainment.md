@@ -691,7 +691,7 @@ postResample(predsBf, obs = test_Data$shares)
 ```
 
     ##         RMSE     Rsquared          MAE 
-    ## 9.612465e+03 1.672114e-04 4.174564e+03
+    ## 9.555329e+03 1.931476e-04 4.081400e+03
 
 ### Comparison of Models
 
@@ -699,10 +699,10 @@ postResample(predsBf, obs = test_Data$shares)
 # Function to determine the best model
 find_best <- function(lm1, lm2, rf, boost){
   # Put all the fit results in a data frame
-  results <- data.frame(rbind("Linear Model 1"= postResample(predslinear1, lifestyle_test_Data$shares),
-                                  "Linear Model 2"= postResample(predslinear2, lifestyle_test_Data$shares),
-                                  "Random Forest"= postResample(predsRf, lifestyle_test_Data$shares),
-                                  "Boosted Tree" = postResample(predsBf, lifestyle_test_Data$shares)))
+  results <- data.frame(rbind("Linear Model 1"= postResample(lm1, test_Data$shares),
+                                  "Linear Model 2"= postResample(lm2, test_Data$shares),
+                                  "Random Forest"= postResample(rf, test_Data$shares),
+                                  "Boosted Tree" = postResample(boost, test_Data$shares)))
 
   # Determine the name of the model with the lowest RMSE
   model_winner <- row.names(results)[results$RMSE == min(results$RMSE)]
@@ -716,18 +716,15 @@ best_model <- find_best(predslinear1, predslinear2, predsRf, predsBf)
 best_model[[1]]
 ```
 
-    ##                RMSE     Rsquared MAE
-    ## Linear Model 1   NA 2.687548e-02  NA
-    ## Linear Model 2   NA 4.511666e-04  NA
-    ## Random Forest    NA 1.184096e-03  NA
-    ## Boosted Tree     NA 4.972046e-06  NA
+    ##                    RMSE     Rsquared      MAE
+    ## Linear Model 1 9036.236 0.0289744450 3001.302
+    ## Linear Model 2 8961.344 0.0700102610 2987.983
+    ## Random Forest  9106.214 0.0142996236 3031.559
+    ## Boosted Tree   9555.329 0.0001931476 4081.400
 
 ``` r
 # Print out a message that tells us which model is the best based on lowest RMSE
 print(paste("The best model by finding the RMSE on the test data is the", best_model[[2]], "model.")) 
 ```
 
-    ## [1] "The best model by finding the RMSE on the test data is the NA model."
-    ## [2] "The best model by finding the RMSE on the test data is the NA model."
-    ## [3] "The best model by finding the RMSE on the test data is the NA model."
-    ## [4] "The best model by finding the RMSE on the test data is the NA model."
+    ## [1] "The best model by finding the RMSE on the test data is the Linear Model 2 model."

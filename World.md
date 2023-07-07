@@ -613,10 +613,10 @@ rfFit$results
     ## 3     3 4400.510 0.03649262 1807.274 1318.172 0.02351051 143.3394
     ## 4     4 4429.941 0.03418351 1827.099 1300.422 0.02283607 135.0833
     ## 5     5 4457.269 0.03166596 1843.992 1284.605 0.02206760 140.1893
-    ## 6     6 4469.601 0.03136533 1860.128 1281.875 0.02450152 133.6230
+    ## 6     6 4470.307 0.03103143 1858.235 1281.324 0.02383607 134.5372
     ## 7     7 4484.867 0.02880815 1865.207 1277.826 0.01868733 140.6752
     ## 8     8 4504.055 0.02899456 1878.669 1262.699 0.02196849 137.7297
-    ## 9     9 4505.007 0.02796074 1878.686 1263.546 0.01819311 140.9286
+    ## 9     9 4503.014 0.02876096 1881.149 1265.061 0.01972393 139.9560
     ## 10   10 4520.457 0.02780308 1887.687 1257.402 0.02092818 141.4134
 
 ``` r
@@ -689,7 +689,7 @@ postResample(predsBf, obs = test_Data$shares)
 ```
 
     ##         RMSE     Rsquared          MAE 
-    ## 8.703261e+03 2.458737e-04 2.921875e+03
+    ## 8.691044e+03 4.444703e-04 2.881257e+03
 
 ### Comparison of Models
 
@@ -697,10 +697,10 @@ postResample(predsBf, obs = test_Data$shares)
 # Function to determine the best model
 find_best <- function(lm1, lm2, rf, boost){
   # Put all the fit results in a data frame
-  results <- data.frame(rbind("Linear Model 1"= postResample(predslinear1, lifestyle_test_Data$shares),
-                                  "Linear Model 2"= postResample(predslinear2, lifestyle_test_Data$shares),
-                                  "Random Forest"= postResample(predsRf, lifestyle_test_Data$shares),
-                                  "Boosted Tree" = postResample(predsBf, lifestyle_test_Data$shares)))
+  results <- data.frame(rbind("Linear Model 1"= postResample(lm1, test_Data$shares),
+                                  "Linear Model 2"= postResample(lm2, test_Data$shares),
+                                  "Random Forest"= postResample(rf, test_Data$shares),
+                                  "Boosted Tree" = postResample(boost, test_Data$shares)))
 
   # Determine the name of the model with the lowest RMSE
   model_winner <- row.names(results)[results$RMSE == min(results$RMSE)]
@@ -714,18 +714,15 @@ best_model <- find_best(predslinear1, predslinear2, predsRf, predsBf)
 best_model[[1]]
 ```
 
-    ##                RMSE     Rsquared MAE
-    ## Linear Model 1   NA 0.0011573172  NA
-    ## Linear Model 2   NA 0.0006712943  NA
-    ## Random Forest    NA 0.0015815357  NA
-    ## Boosted Tree     NA 0.0001626419  NA
+    ##                    RMSE     Rsquared      MAE
+    ## Linear Model 1 8551.741 0.0172096691 2083.770
+    ## Linear Model 2 8560.540 0.0151491891 2096.793
+    ## Random Forest  8544.260 0.0261733971 2038.923
+    ## Boosted Tree   8691.044 0.0004444703 2881.257
 
 ``` r
 # Print out a message that tells us which model is the best based on lowest RMSE
 print(paste("The best model by finding the RMSE on the test data is the", best_model[[2]], "model.")) 
 ```
 
-    ## [1] "The best model by finding the RMSE on the test data is the NA model."
-    ## [2] "The best model by finding the RMSE on the test data is the NA model."
-    ## [3] "The best model by finding the RMSE on the test data is the NA model."
-    ## [4] "The best model by finding the RMSE on the test data is the NA model."
+    ## [1] "The best model by finding the RMSE on the test data is the Random Forest model."

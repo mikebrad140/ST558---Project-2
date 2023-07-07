@@ -690,7 +690,7 @@ postResample(predsBf, obs = test_Data$shares)
 ```
 
     ##         RMSE     Rsquared          MAE 
-    ## 1.171948e+04 4.673355e-03 3.653957e+03
+    ## 1.170287e+04 6.445376e-03 3.664500e+03
 
 ### Comparison of Models
 
@@ -698,10 +698,10 @@ postResample(predsBf, obs = test_Data$shares)
 # Function to determine the best model
 find_best <- function(lm1, lm2, rf, boost){
   # Put all the fit results in a data frame
-  results <- data.frame(rbind("Linear Model 1"= postResample(predslinear1, lifestyle_test_Data$shares),
-                                  "Linear Model 2"= postResample(predslinear2, lifestyle_test_Data$shares),
-                                  "Random Forest"= postResample(predsRf, lifestyle_test_Data$shares),
-                                  "Boosted Tree" = postResample(predsBf, lifestyle_test_Data$shares)))
+  results <- data.frame(rbind("Linear Model 1"= postResample(lm1, test_Data$shares),
+                                  "Linear Model 2"= postResample(lm2, test_Data$shares),
+                                  "Random Forest"= postResample(rf, test_Data$shares),
+                                  "Boosted Tree" = postResample(boost, test_Data$shares)))
 
   # Determine the name of the model with the lowest RMSE
   model_winner <- row.names(results)[results$RMSE == min(results$RMSE)]
@@ -719,7 +719,7 @@ best_model[[1]]
     ## Linear Model 1 11885.26 0.0015909049 3751.437
     ## Linear Model 2 11927.23 0.0004919885 3773.382
     ## Random Forest  11682.59 0.0086573097 3688.203
-    ## Boosted Tree   11719.48 0.0046733555 3653.957
+    ## Boosted Tree   11702.87 0.0064453764 3664.500
 
 ``` r
 # Print out a message that tells us which model is the best based on lowest RMSE
