@@ -10,11 +10,16 @@ This repository conducts data summarization and analysis on the [online news pop
 ### List of R packages used:
 The following packages to complete this analysis:
 
--   Tidyverse: for data manipulation (dplyr), and vizualization (ggplot2). 
--   Caret: to split data, train and compare models, perform data preprocessing, and tune hyperparameters.
--   Rmarkdown: to render code to console and add enhancements to R Markdown
--   ggplot2: graphs and visualizations
--   
+-   tidyverse: for data manipulation (dplyr), and vizualization (ggplot2). 
+-   caret: to split data, train and compare models, perform data preprocessing, and tune hyperparameters.
+-   rmarkdown: to render code to console and add enhancements to R Markdown
+-   randomForest: For classification and regression with Random Forest
+-   doParallel: provides support for parallel computing
+-   MASS: wide range of statistical functions for various statistical analyses and modeling tasks.
+-   leaps: for computing forward/backward subsets of variables in linear regression models
+-   gbm : provides functions for fitting and predicting using boosting models
+-   GGally: for pairwise plots
+  
 ### Links to the generated analyses:  
 
 -   [Lifestyle article is available here](Lifestyle.html)
@@ -22,6 +27,7 @@ The following packages to complete this analysis:
 -   [Business article is available here](Business.html)
 -   [Social Media article is available here](SocialMedia.html)
 -   [Tech article is available here](Tech.html)
+-   [World article is available here](World.html)
 
 ### Code used to create the analyses of each data channel:
 To automate the creation of our markdown documents for each data channel, we first created a data frame that had a vector of channel file names in the first column, and a list of parameters in the second column. 
