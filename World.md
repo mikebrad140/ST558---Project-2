@@ -11,31 +11,33 @@ Michael Bradshaw and Yejun Han
   - <a href="#splitting-the-data-into-test-and-training-datasets"
     id="toc-splitting-the-data-into-test-and-training-datasets">Splitting
     the data into test and training datasets</a>
-  - <a href="#summarizations-both-michael-and-yejun"
-    id="toc-summarizations-both-michael-and-yejun">Summarizations (Both
-    Michael and Yejun)</a>
-  - <a href="#modeling-both-michael-and-yejun"
-    id="toc-modeling-both-michael-and-yejun">Modeling (Both Michael and
-    Yejun)</a>
+  - <a href="#summarizations" id="toc-summarizations">Summarizations</a>
+  - <a href="#modeling" id="toc-modeling">Modeling</a>
 
 # Channel of Interest: World
 
 ## Introduction to the Project
 
-The working data set is about the online news popularity, and nearly 60
-kinds of variables are included, such as n_tokens_title,
-n_unique_tokens, num_imgs, num_videos, average_token_length,
-num_keywords, weekday_is\_, is_weekend, rate_positive_words,
-max_negative_polarity, title_subjectivity, and shares. The work intends
-to analyze the data and fitting model with the shares as target variable
-under one of data_channels, and then apply to other data_channels. The
-data was firstly imported and non-predictor variables such as url and
-timedelta were removed. The data was then summarized, and the variables
-of day_of_week, content_length, avg_positive_polarity, num_keywords, and
-length of title were respectively analyzed through with statistics and
-plots. In modeling, both linear regression model and ensemble tree-based
-models were adopted. The four created models were comparatively
-analyzed, and the optimum model was selected.
+The dataset used for this analysis focuses on the popularity of online
+news articles, encompassing approximately 60 variables. These variables
+include n_tokens_title, n_unique_tokens, num_imgs, num_videos,
+average_token_length, num_keywords, weekday_is\_, is_weekend,
+rate_positive_words, max_negative_polarity, title_subjectivity, and
+shares. Our objective is to analyze the data and develop predictive
+models with the shares variable as the target for each of six different
+data channels.
+
+To begin, we imported the news dataset and removed non-predictor
+variables such as url and timedelta. Next, we conducted summarizations
+of the data and explored specific variables such as day_of_week,
+content_length, avg_positive_polarity, num_keywords, and the length of
+the title. This analysis involved examining relevant summary statistics
+and generating plots to gain insights.
+
+In the modeling phase, we employed both linear regression models and
+ensemble tree-based models. These models were applied to predict the
+number of shares. We then compared the performance of the four created
+models and selected the optimal model.
 
 ## Import the Data
 
@@ -111,7 +113,7 @@ train_Data <- newsData_channel[trainIndices, ]
 test_Data <- newsData_channel[-trainIndices, ]
 ```
 
-## Summarizations (Both Michael and Yejun)
+## Summarizations
 
 In this first example, we look at a table summarizing the statistics of
 the shares variable in our training dataset. We then create a histogram
@@ -255,12 +257,16 @@ ggplot(average_shares_byContent, aes(x = average_shares, y = content_length, fil
 
 ![](World_files/figure-gfm/Summarization3-1.png)<!-- -->
 
-To analyze the connection between avg_positive_polarity and
-average_shares. The numeric data was conveted to categorical data
-avg_positive_polarity_rate (“Low”, “Medium”,“High”,“Very High” ). It’s
-interesting that the low avg_positive_polarity_rate displyed the highest
-average_shares. The high and medium avg_positive_polarity are similar in
-average_shares.
+To analyze the relationship between avg_positive_polarity and
+average_shares, the continuous numeric data of avg_positive_polarity was
+transformed into categorical data using the variable
+avg_positive_polarity_rate, which includes the categories “Low,”
+“Medium,” “High,” and “Very High.”
+
+Interestingly, it was observed that articles with a “Low”
+avg_positive_polarity_rate displayed the highest average number of
+shares. On the other hand, articles with “High” and “Medium”
+avg_positive_polarity_rate showed similar average share counts.
 
 ``` r
 # Calculate the average shares by avg_positive_polarity_rate category
@@ -296,12 +302,14 @@ ggplot(average_shares_byavg_positive_polarity_rate, aes(x = avg_positive_polarit
 
 ![](World_files/figure-gfm/Summarization4-1.png)<!-- -->
 
-Here is the summary plot of average_share versus num_keywords. When the
-number of keywords is less than 8, the average_shares increase with the
-increase of keywords, except when there are 5 keywords.When there are
-more than 8 keywords, the average_share will gradually decrease.It
-suggests that a moderate number of keywords will increase
-average_shares.
+For articles with less than 8 keywords, this summary plot shows an
+increasing trend in average shares as the number of keywords increases,
+except for cases where there are exactly 5 keywords. However, when the
+number of keywords exceeds 8, the plot indicates a gradual decrease in
+average shares.
+
+This suggests that articles with a moderate number of keywords tend to
+have higher average shares.
 
 ``` r
 # Calculate the average shares by number of keywords
@@ -340,12 +348,20 @@ ggplot(average_shares_bynum_keywords, aes(x = num_keywords, y = average_shares, 
 
 ![](World_files/figure-gfm/Summarization5-1.png)<!-- -->
 
-Besides the length of content, the effect of length of title on
-average_shares was also analyzed. In the plot of average_shares versus
-length of title. The title with medium length showed the highest
-average_shares, while which is just slightly higher than that of Long
-and short length of title. It is obvious that very long titles will
-reduce average_shares.
+In addition to analyzing the effect of content length on average_shares,
+we also examined the impact of title length on this variable. By
+plotting average_shares against the length of the title, we observed
+several interesting trends.
+
+The plot revealed that titles with a medium length exhibited the highest
+average number of shares. Surprisingly, the average shares for titles of
+long and short length were only slightly lower than those of
+medium-length titles. However, it is evident that very long titles have
+a negative effect on the average number of shares.
+
+These findings suggest that maintaining a moderate length for article
+titles is associated with higher average shares, while excessively long
+titles may have a detrimental impact on the article’s shareability.
 
 ``` r
 # Calculate the average shares by title length category
@@ -380,10 +396,7 @@ ggplot(average_shares_byTitle, aes(x = title_length, y = average_shares, fill = 
 
 ![](World_files/figure-gfm/Summarization6-1.png)<!-- -->
 
-## Modeling (Both Michael and Yejun)
-
-Each group member should contribute a linear regression model and an
-ensemble tree-based model.
+## Modeling
 
 ### Linear Regression Models
 
@@ -514,7 +527,7 @@ postResample(predslinear1, obs = test_Data$shares)
     ## 8.551741e+03 1.720967e-02 2.083770e+03
 
 Now, let’s suppose we were way off with all of our assumptions in terms
-of the key variables to include. Let’s try a different appraoch and use
+of the key variables to include. Let’s try a different approach and use
 the leapSeq algorithm. This approach evaluates different subsets of
 features to determine the subset that produces the best model
 performance. And in this situation, we can do this with all of the
@@ -613,10 +626,10 @@ rfFit$results
     ## 3     3 4400.510 0.03649262 1807.274 1318.172 0.02351051 143.3394
     ## 4     4 4429.941 0.03418351 1827.099 1300.422 0.02283607 135.0833
     ## 5     5 4457.269 0.03166596 1843.992 1284.605 0.02206760 140.1893
-    ## 6     6 4470.307 0.03103143 1858.235 1281.324 0.02383607 134.5372
+    ## 6     6 4469.601 0.03136533 1860.128 1281.875 0.02450152 133.6230
     ## 7     7 4484.867 0.02880815 1865.207 1277.826 0.01868733 140.6752
     ## 8     8 4504.055 0.02899456 1878.669 1262.699 0.02196849 137.7297
-    ## 9     9 4503.014 0.02876096 1881.149 1265.061 0.01972393 139.9560
+    ## 9     9 4505.007 0.02796074 1878.686 1263.546 0.01819311 140.9286
     ## 10   10 4520.457 0.02780308 1887.687 1257.402 0.02092818 141.4134
 
 ``` r
@@ -677,8 +690,8 @@ stopCluster(cl)
 registerDoSEQ()
 ```
 
-Then, the boosted tree model was evaluated, the performance across
-test_Data was calculates.
+Then, the boosted tree model was evaluated by assessing its performance
+on the test data.
 
 ``` r
 # Make predictions with Boosted tree model
@@ -692,6 +705,12 @@ postResample(predsBf, obs = test_Data$shares)
     ## 8.691044e+03 4.444703e-04 2.881257e+03
 
 ### Comparison of Models
+
+In this section, we will compare the performance of our four models: 1)
+linear regression (subset of predictors), 2) linear regression (all
+predictors, leap approach) 3) random forest, and 4) boosted tree. We
+will evaluate the models using the test set with a focus on predictive
+accuracy measured by the lowest Root Mean Squared Error (RMSE).
 
 ``` r
 # Function to determine the best model
@@ -722,7 +741,7 @@ best_model[[1]]
 
 ``` r
 # Print out a message that tells us which model is the best based on lowest RMSE
-print(paste("The best model by finding the RMSE on the test data is the", best_model[[2]], "model.")) 
+print(paste("The best model for the", params$channel, "data channel, determined by the lowest RMSE on the test data, is the", best_model[[2]], "model."))
 ```
 
-    ## [1] "The best model by finding the RMSE on the test data is the Random Forest model."
+    ## [1] "The best model for the World data channel, determined by the lowest RMSE on the test data, is the Random Forest model."
