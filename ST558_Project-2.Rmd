@@ -30,8 +30,9 @@ library(doParallel)
 
 # Channel of Interest: `r params$channel`
 
-## Introduction to the Project (To be Completed by Yejun)
+## Introduction to the Project
 
+The working data set is about the online news popularity, and nearly 60 kinds of variables are included, such as n_tokens_title, n_unique_tokens, num_imgs, num_videos, average_token_length, num_keywords, weekday_is_, is_weekend, rate_positive_words, max_negative_polarity, title_subjectivity, and shares. The work intends to analyze the data and fitting model with the shares as target variable under one of data_channels, and then apply to other data_channels. The data was firstly imported and non-predictor variables such as url and timedelta were removed. The data was then summarized, and the variables of day_of_week, content_length, avg_positive_polarity, num_keywords, and length of title were respectively analyzed through with statistics and plots. In modeling, both linear regression model and ensemble tree-based models were adopted. The four created models were comparatively analyzed, and the optimum model was selected.
 
 ## Import the Data
 In this section, we first import the raw online news popularity dataset. We remove the non-predictor variables named url and timedelta. Next, we create three new variables: the first is called *channel* based on the values of the *data_channel_is_* variables. The second new variable is called *day_of_week* based on the values of the *weekday_is_* variables. The third new variable is called *content_length* based on the values of the *n_tokens_content* variable. The *content_length *variable is assigned values based on the conditionals provided, categorizing the length of the content as "Very Short," "Short," "Medium," or "Long."
@@ -59,8 +60,15 @@ newsData <- newsData %>%
                        ifelse(weekday_is_saturday == 1, "Saturday", "Sunday")))))),
          content_length = ifelse(n_tokens_content <= 250, "Very Short",
                         ifelse(n_tokens_content <= 410, "Short",      
-                        ifelse(n_tokens_content <= 750, "Medium", "Long")))
+                        ifelse(n_tokens_content <= 750, "Medium", "Long"))),
+         title_length = ifelse(n_tokens_title <= 8, "Short",
+                               ifelse(n_tokens_title <= 12, "Medium",      
+                               ifelse(n_tokens_title <= 15, "Long","Very Long"))),
+         avg_positive_polarity_rate = ifelse(avg_positive_polarity <= 0.2, "Low",
+                               ifelse(avg_positive_polarity <= 0.3, "Medium",      
+                               ifelse(avg_positive_polarity <= 0.4, "High","Very High")))
          )
+
 newsData$channel <- as.factor(newsData$channel) #Converting to factor
 newsData$day_of_week <- factor(newsData$day_of_week,
                                levels = c("Sunday", "Monday", "Tuesday", 
@@ -163,7 +171,75 @@ ggplot(average_shares_byContent, aes(x = average_shares, y = content_length, fil
   theme(axis.text.y = element_text(hjust = 0.5))
 ```
 
-**Yejun to add more.**
+To analyze the connection between avg_positive_polarity and average_shares. The numeric data was conveted to categorical data avg_positive_polarity_rate ("Low", "Medium","High","Very High" ). It's interesting that the low avg_positive_polarity_rate displyed the highest average_shares. The high and medium avg_positive_polarity are similar in average_shares.
+
+```{r Summarization4, eval=TRUE}
+# Calculate the average shares by avg_positive_polarity_rate category
+average_shares_byavg_positive_polarity_rate <- train_Data %>%
+  group_by(avg_positive_polarity_rate) %>%
+  summarise(n = n(),
+            average_shares = mean(shares),
+            sd_shares = sd(shares),
+            min_shares = min(shares),
+            max_shares = max(shares),
+            range_shares = max_shares - min_shares)
+average_shares_byavg_positive_polarity_rate
+
+# Create the horizontal bar chart
+ggplot(average_shares_byavg_positive_polarity_rate, aes(x = avg_positive_polarity_rate, y = average_shares, fill = avg_positive_polarity_rate)) +
+  geom_bar(stat = "identity") +
+  labs(x = "avg_positive_polarity_rate Category", y = "Average Shares", fill = "avg_positive_polarity_rate") +
+  ggtitle("Average Shares by avg_positive_polarity_rate Category") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(hjust = 0.6))
+
+```
+
+Here is the summary plot of average_share versus num_keywords. When the number of keywords is less than 8, the average_shares increase with the increase of keywords, except when there are 5 keywords.When there are more than 8 keywords, the average_share will gradually decrease.It suggests that a moderate number of keywords will increase average_shares.
+
+```{r Summarization5, eval=TRUE}
+# Calculate the average shares by number of keywords
+average_shares_bynum_keywords <- train_Data %>%
+  group_by(num_keywords) %>%
+  summarise(n = n(),
+            average_shares = mean(shares),
+            sd_shares = sd(shares),
+            min_shares = min(shares),
+            max_shares = max(shares),
+            range_shares = max_shares - min_shares)
+average_shares_bynum_keywords
+
+# Create the horizontal bar chart
+ggplot(average_shares_bynum_keywords, aes(x = num_keywords, y = average_shares, fill = num_keywords)) +
+  geom_bar(stat = "identity") +
+  labs(x = "num_keywords", y = "Average Shares", fill = "num_keywords") +
+  ggtitle("Average Shares by number of keywords") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(hjust = 0.5))
+```
+
+Besides the length of content, the effect of length of title on average_shares was also analyzed. In the plot of average_shares versus length of title. The title with medium length showed the highest average_shares, while which is just slightly higher than that of Long and short length of title. It is obvious that very long titles will reduce average_shares.
+
+```{r Summarization6, eval=TRUE}
+# Calculate the average shares by title length category
+average_shares_byTitle <- train_Data %>%
+  group_by(title_length) %>%
+  summarise(n = n(),
+            average_shares = mean(shares),
+            sd_shares = sd(shares),
+            min_shares = min(shares),
+            max_shares = max(shares),
+            range_shares = max_shares - min_shares)
+average_shares_byTitle
+
+# Create the horizontal bar chart
+ggplot(average_shares_byTitle, aes(x = title_length, y = average_shares, fill = title_length)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Title Length Category", y = "Average Shares", fill = "Title Length") +
+  ggtitle("Average Shares by title Length Category") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(hjust = 0.5))
+```
 
 ## Modeling (Both Michael and Yejun)
  
@@ -175,7 +251,7 @@ Linear regression is a modeling technique that attempts to form a linear relatio
 
 Our online news dataset contains a large number of predictors and we don't have a great sense of their relationship to the shares variable. These relationships may change between data channels as well. If we look at correlations between shares and the rest of the possible numeric variables, we see a mix of small positive relationship, small negative relationships, and some with little to no relationship. 
 
-```{r}
+```{r Correlations, eval=TRUE}
 # Calculate correlations between shares and all numeric variables
 correlations <- cor(train_Data[, sapply(train_Data, is.numeric)], 
                     train_Data$shares)
@@ -208,8 +284,8 @@ Now, let's suppose we were way off with all of our assumptions in terms of the k
 
 ```{r LinearModel2, eval=TRUE}
 # Parallel Processing
-cores <- 10
-cl <- makeCluster(cores)
+num_cores <- detectCores()-1
+cl <- makeCluster(num_cores)
 registerDoParallel(cl)
 
 step_model_seq <- train(shares ~ . , data = train_Data, 
@@ -238,8 +314,8 @@ Random Forest is an ensemble learning technique that uses decision tress to make
 
 ```{r RandomForest, eval=TRUE}
 # Parallel Processing
-cores <- 10
-cl <- makeCluster(cores)
+num_cores <- detectCores()-1
+cl <- makeCluster(num_cores)
 registerDoParallel(cl)
 
 rfFit <- train(shares ~ ., data = train_Data_model, method = "rf",
@@ -264,5 +340,74 @@ predsRf <- predict(rfFit, newdata = test_Data)
 # Check model fit diagnostics
 postResample(predsRf, obs = test_Data$shares)
 ```
-### Comparison of Models (Yejun)
+### Boosted tree model: 
+
+Boosted tree model, also known as gradient boosting, combines multiple weak prediction models to create a stronger and more accurate model. Each tree is dependent on prior trees, i.e. fitting the residual of the trees that preceded it, and improve the final accuracy. 
+
+```{r Boostedtree, eval=TRUE}
+# Boosted: Define the control parameters for cross-validation  
+ctrl <- trainControl(method = "cv", number = 5)
+
+# Define the tuning parameters:
+boosted_grid <- expand.grid(n.trees = c(25, 50, 100, 150, 200),
+                            interaction.depth = c(1, 2, 3, 4),
+                            shrinkage = 0.1,
+                            n.minobsinnode = 10)
+
+# Specify the boosted tree model using the gbm package
+
+# Set the number of CPU cores to use
+num_cores <- detectCores()-1
+# Set up parallel processing
+cl <- makeCluster(num_cores)
+registerDoParallel(cl)
+boostFit <- train(shares ~ ., data = lifestyle_train_Data_model,
+                       method = "gbm",
+                       trControl = trainControl(method = "repeatedcv", 
+                                                number = 5, repeats = 3),
+                       tuneGrid = boosted_grid,
+                       #suppress output
+                       verbose = FALSE )
+# Stop parallel processing
+stopCluster(cl)
+registerDoSEQ()
+
+```
+
+Then, the boosted tree model was evaluated, the performance across test_Data was calculates. 
+
+
+```{r BoostedTreeEvaluation, eval=TRUE}
+# Make predictions with Boosted tree model
+predsBf <- predict(boostFit, newdata = test_Data)
+
+# Check model fit diagnostics
+postResample(predsBf, obs = test_Data$shares)
+
+```
+
+### Comparison of Models 
+
+```{r Modelcompare, eval=TRUE}
+# Function to determine the best model
+find_best <- function(lm1, lm2, rf, boost){
+  # Put all the fit results in a data frame
+  results <- data.frame(rbind("Linear Model 1"= postResample(predslinear1, lifestyle_test_Data$shares),
+                                  "Linear Model 2"= postResample(predslinear2, lifestyle_test_Data$shares),
+                                  "Random Forest"= postResample(predsRf, lifestyle_test_Data$shares),
+                                  "Boosted Tree" = postResample(predsBf, lifestyle_test_Data$shares)))
+
+  # Determine the name of the model with the lowest RMSE
+  model_winner <- row.names(results)[results$RMSE == min(results$RMSE)]
+  # Return both the data frame of results, as well as the row name of best model name in a list
+  return(list(results, model_winner))
+}
+
+# search through to find the best model
+best_model <- find_best(predslinear1, predslinear2, predsRf, predsBf)
+# Print out the data frame of RMSE, Rsquared, and MAE
+best_model[[1]]
+# Print out a message that tells us which model is the best based on lowest RMSE
+print(paste("The best model by finding the RMSE on the test data is the", best_model[[2]], "model.")) 
+```
 
