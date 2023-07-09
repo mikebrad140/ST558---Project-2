@@ -14,6 +14,8 @@ Michael Bradshaw and Yejun Han
     the data into test and training datasets</a>
   - <a href="#summarizations" id="toc-summarizations">Summarizations</a>
   - <a href="#modeling" id="toc-modeling">Modeling</a>
+  - <a href="#comparison-of-models" id="toc-comparison-of-models">Comparison
+    of Models</a>
 
 # Channel of Interest: SocialMedia
 
@@ -702,7 +704,7 @@ postResample(predsBf, obs = test_Data$shares)
     ##         RMSE     Rsquared          MAE 
     ## 6108.5334618    0.0114048 3175.1672612
 
-### Comparison of Models
+## Comparison of Models
 
 In this section, we will compare the performance of our four models: 1)
 linear regression (subset of predictors), 2) linear regression (all

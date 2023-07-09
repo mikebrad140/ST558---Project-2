@@ -391,7 +391,7 @@ postResample(predsBf, obs = test_Data$shares)
 
 ```
 
-### Comparison of Models 
+## Comparison of Models 
 
 In this section, we will compare the performance of our four models: 1) linear regression (subset of predictors), 2) linear regression (all predictors, leap approach)  3) random forest, and 4) boosted tree. We will evaluate the models using the test set with a focus on predictive accuracy measured by the lowest Root Mean Squared Error (RMSE). 
 

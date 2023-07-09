@@ -14,6 +14,8 @@ Michael Bradshaw and Yejun Han
     the data into test and training datasets</a>
   - <a href="#summarizations" id="toc-summarizations">Summarizations</a>
   - <a href="#modeling" id="toc-modeling">Modeling</a>
+  - <a href="#comparison-of-models" id="toc-comparison-of-models">Comparison
+    of Models</a>
 
 # Channel of Interest: Lifestyle
 
@@ -700,7 +702,7 @@ postResample(predsBf, obs = test_Data$shares)
     ##         RMSE     Rsquared          MAE 
     ## 1.170287e+04 6.445376e-03 3.664500e+03
 
-### Comparison of Models
+## Comparison of Models
 
 In this section, we will compare the performance of our four models: 1)
 linear regression (subset of predictors), 2) linear regression (all

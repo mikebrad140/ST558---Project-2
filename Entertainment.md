@@ -14,6 +14,8 @@ Michael Bradshaw and Yejun Han
     the data into test and training datasets</a>
   - <a href="#summarizations" id="toc-summarizations">Summarizations</a>
   - <a href="#modeling" id="toc-modeling">Modeling</a>
+  - <a href="#comparison-of-models" id="toc-comparison-of-models">Comparison
+    of Models</a>
 
 # Channel of Interest: Entertainment
 
@@ -626,7 +628,7 @@ rfFit$results
     ## 6     6 7016.407 0.02940863 2890.895 1853.481 0.007116829 274.8287
     ## 7     7 7042.351 0.02759359 2901.652 1840.920 0.007937199 271.7191
     ## 8     8 7069.559 0.02723153 2919.786 1813.775 0.006469195 264.9758
-    ## 9     9 7103.380 0.02479041 2941.757 1799.138 0.007392873 269.3574
+    ## 9     9 7105.573 0.02457779 2942.551 1798.324 0.007594640 269.5126
     ## 10   10 7131.302 0.02336842 2954.599 1809.048 0.006379454 279.5842
 
 ``` r
@@ -701,7 +703,7 @@ postResample(predsBf, obs = test_Data$shares)
     ##         RMSE     Rsquared          MAE 
     ## 9.555329e+03 1.931476e-04 4.081400e+03
 
-### Comparison of Models
+## Comparison of Models
 
 In this section, we will compare the performance of our four models: 1)
 linear regression (subset of predictors), 2) linear regression (all
