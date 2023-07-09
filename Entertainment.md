@@ -1,7 +1,7 @@
 ST558: Project 2
 ================
 Michael Bradshaw and Yejun Han
-2023-07-07
+2023-07-09
 
 - <a href="#channel-of-interest-entertainment"
   id="toc-channel-of-interest-entertainment">Channel of Interest:
@@ -259,15 +259,20 @@ ggplot(average_shares_byContent, aes(x = average_shares, y = content_length, fil
 ![](Entertainment_files/figure-gfm/Summarization3-1.png)<!-- -->
 
 To analyze the relationship between avg_positive_polarity and
-average_shares, the continuous numeric data of avg_positive_polarity was
-transformed into categorical data using the variable
-avg_positive_polarity_rate, which includes the categories “Low,”
+average_shares, we transformed the continuous numeric data of
+avg_positive_polarity into categorical data using the variable
+avg_positive_polarity_rate. This variable includes the categories “Low,”
 “Medium,” “High,” and “Very High.”
 
-Interestingly, it was observed that articles with a “Low”
-avg_positive_polarity_rate displayed the highest average number of
-shares. On the other hand, articles with “High” and “Medium”
-avg_positive_polarity_rate showed similar average share counts.
+In the plot of average shares as a function of average positive polarity
+rate, if we observe higher average shares values for categories with
+higher positivity levels in the average positive polarity rate, such as
+“High” and “Very High”, it suggests a positive relationship between
+average positive polarity and average shares of the content. On the
+other hand, if we notice lower average shares for categories with lower
+positivity levels in the average positive polarity rate, such as “Low”
+and “Very Low,” it could indicate a negative relationship between
+average positive polarity and average shares of the content.
 
 ``` r
 # Calculate the average shares by avg_positive_polarity_rate category
@@ -303,14 +308,15 @@ ggplot(average_shares_byavg_positive_polarity_rate, aes(x = avg_positive_polarit
 
 ![](Entertainment_files/figure-gfm/Summarization4-1.png)<!-- -->
 
-For articles with less than 8 keywords, this summary plot shows an
-increasing trend in average shares as the number of keywords increases,
-except for cases where there are exactly 5 keywords. However, when the
-number of keywords exceeds 8, the plot indicates a gradual decrease in
-average shares.
-
-This suggests that articles with a moderate number of keywords tend to
-have higher average shares.
+This next graph displays the average number of shares based on the
+number of keywords, allowing for a comparison of share counts across
+different keyword categories. In the trend of average shares as a
+function of the number of keywords, we observe that the shares change
+with different keywords. If the plot shows an upward trend, this
+suggests that the article tends to be shared more often when they have a
+larger number of keywords. Similarly, if the plot shows a downward
+trend, this would indicate that articles tends to be shared less with
+the increase in keywords.
 
 ``` r
 # Calculate the average shares by number of keywords
@@ -351,19 +357,12 @@ ggplot(average_shares_bynum_keywords, aes(x = num_keywords, y = average_shares, 
 ![](Entertainment_files/figure-gfm/Summarization5-1.png)<!-- -->
 
 In addition to analyzing the effect of content length on average_shares,
-we also examined the impact of title length on this variable. By
-plotting average_shares against the length of the title, we observed
-several interesting trends.
-
-The plot revealed that titles with a medium length exhibited the highest
-average number of shares. Surprisingly, the average shares for titles of
-long and short length were only slightly lower than those of
-medium-length titles. However, it is evident that very long titles have
-a negative effect on the average number of shares.
-
-These findings suggest that maintaining a moderate length for article
-titles is associated with higher average shares, while excessively long
-titles may have a detrimental impact on the article’s shareability.
+we also examined the impact of title length on the shares variable. The
+numeric data of title length was first converted to categorical data of
+short, medium, long, and very long. From the plot, we can find the
+relationship between the length of title and the article shares.If the
+average_share is high with the corresponding title, this would suggest
+that articles tend to be shared more for that particualr title length.
 
 ``` r
 # Calculate the average shares by title length category
@@ -421,71 +420,67 @@ relationships, and some with little to no relationship.
 
 ``` r
 # Calculate correlations between shares and all numeric variables
+train_Data <- train_Data %>% dplyr::select(-starts_with("data_channel"))
+
 correlations <- cor(train_Data[, sapply(train_Data, is.numeric)], 
                     train_Data$shares)
 correlations
 ```
 
-    ##                                        [,1]
-    ## n_tokens_title                 0.0082025078
-    ## n_tokens_content              -0.0099358129
-    ## n_unique_tokens                0.0060525446
-    ## n_non_stop_words               0.0058585890
-    ## n_non_stop_unique_tokens       0.0057499767
-    ## num_hrefs                      0.0463818864
-    ## num_self_hrefs                -0.0040597561
-    ## num_imgs                       0.0452642152
-    ## num_videos                     0.0005214405
-    ## average_token_length           0.0103222753
-    ## num_keywords                   0.0455185020
-    ## data_channel_is_lifestyle                NA
-    ## data_channel_is_entertainment            NA
-    ## data_channel_is_bus                      NA
-    ## data_channel_is_socmed                   NA
-    ## data_channel_is_tech                     NA
-    ## data_channel_is_world                    NA
-    ## kw_min_min                     0.0002161344
-    ## kw_max_min                     0.0067707745
-    ## kw_avg_min                     0.0035846768
-    ## kw_min_max                    -0.0027346618
-    ## kw_max_max                     0.0129599116
-    ## kw_avg_max                     0.0423079591
-    ## kw_min_avg                     0.0241892312
-    ## kw_max_avg                     0.0838594227
-    ## kw_avg_avg                     0.1245978606
-    ## self_reference_min_shares      0.1159582698
-    ## self_reference_max_shares      0.0786395307
-    ## self_reference_avg_sharess     0.1330038136
-    ## weekday_is_monday             -0.0119032551
-    ## weekday_is_tuesday            -0.0114185035
-    ## weekday_is_wednesday           0.0011001656
-    ## weekday_is_thursday           -0.0161416172
-    ## weekday_is_friday             -0.0065650606
-    ## weekday_is_saturday            0.0300904887
-    ## weekday_is_sunday              0.0392585302
-    ## is_weekend                     0.0510916208
-    ## LDA_00                        -0.0289428353
-    ## LDA_01                        -0.0201822507
-    ## LDA_02                        -0.0262798352
-    ## LDA_03                         0.0382017534
-    ## LDA_04                        -0.0041387574
-    ## global_subjectivity            0.0300187894
-    ## global_sentiment_polarity      0.0155998871
-    ## global_rate_positive_words    -0.0334521379
-    ## global_rate_negative_words    -0.0131454062
-    ## rate_positive_words           -0.0060175894
-    ## rate_negative_words            0.0008146931
-    ## avg_positive_polarity          0.0185136826
-    ## min_positive_polarity          0.0239526322
-    ## max_positive_polarity          0.0027406734
-    ## avg_negative_polarity         -0.0012964950
-    ## min_negative_polarity          0.0080679634
-    ## max_negative_polarity          0.0012686628
-    ## title_subjectivity             0.0125873128
-    ## title_sentiment_polarity      -0.0039697509
-    ## abs_title_subjectivity         0.0039264613
-    ## abs_title_sentiment_polarity   0.0156540906
-    ## shares                         1.0000000000
+    ##                                       [,1]
+    ## n_tokens_title                0.0082025078
+    ## n_tokens_content             -0.0099358129
+    ## n_unique_tokens               0.0060525446
+    ## n_non_stop_words              0.0058585890
+    ## n_non_stop_unique_tokens      0.0057499767
+    ## num_hrefs                     0.0463818864
+    ## num_self_hrefs               -0.0040597561
+    ## num_imgs                      0.0452642152
+    ## num_videos                    0.0005214405
+    ## average_token_length          0.0103222753
+    ## num_keywords                  0.0455185020
+    ## kw_min_min                    0.0002161344
+    ## kw_max_min                    0.0067707745
+    ## kw_avg_min                    0.0035846768
+    ## kw_min_max                   -0.0027346618
+    ## kw_max_max                    0.0129599116
+    ## kw_avg_max                    0.0423079591
+    ## kw_min_avg                    0.0241892312
+    ## kw_max_avg                    0.0838594227
+    ## kw_avg_avg                    0.1245978606
+    ## self_reference_min_shares     0.1159582698
+    ## self_reference_max_shares     0.0786395307
+    ## self_reference_avg_sharess    0.1330038136
+    ## weekday_is_monday            -0.0119032551
+    ## weekday_is_tuesday           -0.0114185035
+    ## weekday_is_wednesday          0.0011001656
+    ## weekday_is_thursday          -0.0161416172
+    ## weekday_is_friday            -0.0065650606
+    ## weekday_is_saturday           0.0300904887
+    ## weekday_is_sunday             0.0392585302
+    ## is_weekend                    0.0510916208
+    ## LDA_00                       -0.0289428353
+    ## LDA_01                       -0.0201822507
+    ## LDA_02                       -0.0262798352
+    ## LDA_03                        0.0382017534
+    ## LDA_04                       -0.0041387574
+    ## global_subjectivity           0.0300187894
+    ## global_sentiment_polarity     0.0155998871
+    ## global_rate_positive_words   -0.0334521379
+    ## global_rate_negative_words   -0.0131454062
+    ## rate_positive_words          -0.0060175894
+    ## rate_negative_words           0.0008146931
+    ## avg_positive_polarity         0.0185136826
+    ## min_positive_polarity         0.0239526322
+    ## max_positive_polarity         0.0027406734
+    ## avg_negative_polarity        -0.0012964950
+    ## min_negative_polarity         0.0080679634
+    ## max_negative_polarity         0.0012686628
+    ## title_subjectivity            0.0125873128
+    ## title_sentiment_polarity     -0.0039697509
+    ## abs_title_subjectivity        0.0039264613
+    ## abs_title_sentiment_polarity  0.0156540906
+    ## shares                        1.0000000000
 
 In general, we see that the number of videos (num_videos), the number of
 images (num_imgs) and the number of links (num_hrefs) have small
@@ -554,24 +549,24 @@ step_model_seq <- train(shares ~ . , data = train_Data,
 step_model_seq$results
 ```
 
-    ##    nvmax      RMSE     Rsquared      MAE   RMSESD   RsquaredSD    MAESD
-    ## 1      1  7141.255 0.0025287789 2827.201 1262.147 0.0040624004 138.2063
-    ## 2      2  7140.730 0.0005161616 2827.200 1259.047 0.0007212553 133.9755
-    ## 3      3  7108.320 0.0100172942 2788.401 1250.657 0.0068332876 102.0010
-    ## 4      4  7112.025 0.0093139312 2781.214 1248.482 0.0063684318 104.4817
-    ## 5      5  7117.245 0.0089572746 2784.587 1245.544 0.0065982052 104.8238
-    ## 6      6  7112.530 0.0114470293 2775.589 1249.612 0.0121350538 113.4971
-    ## 7      7  7130.064 0.0057569802 2787.951 1233.106 0.0043865809 100.6897
-    ## 8      8  7115.174 0.0107040907 2773.086 1250.801 0.0106070168 114.3940
-    ## 9      9  7094.103 0.0145962437 2766.777 1241.329 0.0091848236 111.6179
-    ## 10    10 10254.881 0.0119018466 2929.345 8120.490 0.0103175340 462.8414
+    ##    nvmax      RMSE   Rsquared      MAE   RMSESD RsquaredSD     MAESD
+    ## 1      1  7107.653 0.01727919 2779.043 1236.452 0.01744679 115.53554
+    ## 2      2  7069.101 0.02555586 2747.695 1217.345 0.01594227 102.30159
+    ## 3      3  7076.744 0.02555108 2761.335 1201.017 0.01588610  90.38829
+    ## 4      4  7086.008 0.02523105 2758.544 1190.020 0.01649192  89.54575
+    ## 5      5  7089.623 0.02532085 2760.801 1188.276 0.01763954  83.14954
+    ## 6      6  7088.450 0.02522311 2760.130 1189.450 0.01574299  83.66361
+    ## 7      7  7112.437 0.01715043 2769.456 1165.264 0.01403257  74.16883
+    ## 8      8  7084.399 0.02570119 2754.863 1188.258 0.01615834  84.55357
+    ## 9      9  7076.639 0.02708469 2756.852 1194.766 0.01504173  85.38148
+    ## 10    10 10251.724 0.02066688 2928.324 8121.007 0.01661168 463.29017
 
 ``` r
 step_model_seq$bestTune
 ```
 
     ##   nvmax
-    ## 9     9
+    ## 2     2
 
 ``` r
 # Stop parallel processing
@@ -590,7 +585,7 @@ postResample(predslinear2, obs = test_Data$shares)
 ```
 
     ##         RMSE     Rsquared          MAE 
-    ## 8.961344e+03 7.001026e-02 2.987983e+03
+    ## 9.140707e+03 9.186671e-03 3.023506e+03
 
 ### Ensemble Tree-Based Models
 
@@ -631,8 +626,8 @@ rfFit$results
     ## 6     6 7016.407 0.02940863 2890.895 1853.481 0.007116829 274.8287
     ## 7     7 7042.351 0.02759359 2901.652 1840.920 0.007937199 271.7191
     ## 8     8 7069.559 0.02723153 2919.786 1813.775 0.006469195 264.9758
-    ## 9     9 7105.573 0.02457779 2942.551 1798.324 0.007594640 269.5126
-    ## 10   10 7133.460 0.02322473 2954.320 1808.385 0.006566566 279.7535
+    ## 9     9 7103.380 0.02479041 2941.757 1799.138 0.007392873 269.3574
+    ## 10   10 7131.302 0.02336842 2954.599 1809.048 0.006379454 279.5842
 
 ``` r
 rfFit$bestTune
@@ -737,7 +732,7 @@ best_model[[1]]
 
     ##                    RMSE     Rsquared      MAE
     ## Linear Model 1 9036.236 0.0289744450 3001.302
-    ## Linear Model 2 8961.344 0.0700102610 2987.983
+    ## Linear Model 2 9140.707 0.0091866713 3023.506
     ## Random Forest  9106.214 0.0142996236 3031.559
     ## Boosted Tree   9555.329 0.0001931476 4081.400
 
@@ -746,4 +741,4 @@ best_model[[1]]
 print(paste("The best model for the", params$channel, "data channel, determined by the lowest RMSE on the test data, is the", best_model[[2]], "model."))
 ```
 
-    ## [1] "The best model for the Entertainment data channel, determined by the lowest RMSE on the test data, is the Linear Model 2 model."
+    ## [1] "The best model for the Entertainment data channel, determined by the lowest RMSE on the test data, is the Linear Model 1 model."

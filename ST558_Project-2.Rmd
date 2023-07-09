@@ -175,9 +175,9 @@ ggplot(average_shares_byContent, aes(x = average_shares, y = content_length, fil
   theme(axis.text.y = element_text(hjust = 0.5))
 ```
 
-To analyze the relationship between avg_positive_polarity and average_shares, the continuous numeric data of avg_positive_polarity was transformed into categorical data using the variable avg_positive_polarity_rate, which includes the categories "Low," "Medium," "High," and "Very High."
+To analyze the relationship between avg_positive_polarity and average_shares, we transformed the continuous numeric data of avg_positive_polarity into categorical data using the variable avg_positive_polarity_rate. This variable includes the categories "Low," "Medium," "High," and "Very High."
 
-Interestingly, it was observed that articles with a "Low" avg_positive_polarity_rate displayed the highest average number of shares. On the other hand, articles with "High" and "Medium" avg_positive_polarity_rate showed similar average share counts.
+In the plot of average shares as a function of average positive polarity rate, if we observe higher average shares values for categories with higher positivity levels in the average positive polarity rate, such as "High" and "Very High", it suggests a positive relationship between average positive polarity and average shares of the content. On the other hand, if we notice lower average shares for categories with lower positivity levels in the average positive polarity rate, such as "Low" and "Very Low," it could indicate a negative relationship between average positive polarity and average shares of the content.
 
 ```{r Summarization4, eval=TRUE}
 # Calculate the average shares by avg_positive_polarity_rate category
@@ -201,9 +201,7 @@ ggplot(average_shares_byavg_positive_polarity_rate, aes(x = avg_positive_polarit
 
 ```
 
-For articles with less than 8 keywords, this summary plot shows an increasing trend in average shares as the number of keywords increases, except for cases where there are exactly 5 keywords. However, when the number of keywords exceeds 8, the plot indicates a gradual decrease in average shares.
-
-This suggests that articles with a moderate number of keywords tend to have higher average shares.
+This next graph displays the average number of shares based on the number of keywords, allowing for a comparison of share counts across different keyword categories. In the trend of average shares as a function of the number of keywords, we observe that the shares change with different keywords. If the plot shows an upward trend, this suggests that the article tends to be shared more often when they have a larger number of keywords. Similarly,  if the plot shows a downward trend, this would indicate that articles tends to be shared less with the increase in keywords.
 
 ```{r Summarization5, eval=TRUE}
 # Calculate the average shares by number of keywords
@@ -226,11 +224,7 @@ ggplot(average_shares_bynum_keywords, aes(x = num_keywords, y = average_shares, 
   theme(axis.text.y = element_text(hjust = 0.5))
 ```
 
-In addition to analyzing the effect of content length on average_shares, we also examined the impact of title length on this variable. By plotting average_shares against the length of the title, we observed several interesting trends.
-
-The plot revealed that titles with a medium length exhibited the highest average number of shares. Surprisingly, the average shares for titles of long and short length were only slightly lower than those of medium-length titles. However, it is evident that very long titles have a negative effect on the average number of shares.
-
-These findings suggest that maintaining a moderate length for article titles is associated with higher average shares, while excessively long titles may have a detrimental impact on the article's shareability.
+In addition to analyzing the effect of content length on average_shares, we also examined the impact of title length on the shares variable. The numeric data of title length was first converted to categorical data of short, medium, long, and very long. From the plot, we can find the relationship between the length of title and the article shares.If the average_share is high with the corresponding title, this would suggest that articles tend to be shared more for that particualr title length.
 
 ```{r Summarization6, eval=TRUE}
 # Calculate the average shares by title length category
@@ -262,6 +256,8 @@ Our online news dataset contains a large number of predictors and we don't have 
 
 ```{r Correlations, eval=TRUE}
 # Calculate correlations between shares and all numeric variables
+train_Data <- train_Data %>% dplyr::select(-starts_with("data_channel"))
+
 correlations <- cor(train_Data[, sapply(train_Data, is.numeric)], 
                     train_Data$shares)
 correlations
